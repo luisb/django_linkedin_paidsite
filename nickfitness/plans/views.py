@@ -5,6 +5,9 @@ from django.views import generic
 from .models import FitnessPlan
 from django.contrib.auth import authenticate, login
 from django.contrib.auth.decorators import login_required
+import stripe
+
+stripe.api_key = 'sk_test_51PgMEA2LABQOshxxtUMXzfjNzwEcXEBTU5pW6hv48f7FAMyUa4lAyvAQf8OBFz7qOnNKOkDvaNj6i4sCHkxFknMY00qyIiWoYN'
 
 def home(request):
     plans = FitnessPlan.objects
@@ -24,6 +27,27 @@ def join(request):
 def checkout(request):
     if request.method == 'POST':
         return redirect('home')
+    else:
+        plan = 'monthly'
+        coupon = 'none'
+        price = 1000
+        og_dollar = 10
+        coupon_dollar = 0
+        final_dollar = 10
+        if request.method == 'GET' and 'plan' in request.GET:
+            if request.GET['plan'] == 'yearly':
+                plan = 'yearly'
+                price = 10000
+                og_dollar = 100
+                final_dollar = 100
+        return render(request, 'plans/checkout.html', {
+            'plan': plan,
+            'coupon': coupon,
+            'price': price,
+            'og_dollar': og_dollar,
+            'coupon_dollar': coupon_dollar,
+            'final_dollar': final_dollar,
+        })
 
 def settings(request):
     return render(request, 'registration/settings.html')
