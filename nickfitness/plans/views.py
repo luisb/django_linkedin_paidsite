@@ -4,10 +4,24 @@ from django.urls import reverse_lazy
 from django.views import generic
 from .models import FitnessPlan, Customer
 from django.contrib.auth import authenticate, login
-from django.contrib.auth.decorators import login_required
+from django.contrib.auth.decorators import login_required, user_passes_test
 import stripe
+from django.http import HttpResponse
 
 stripe.api_key = 'sk_test_51PgMEA2LABQOshxxtUMXzfjNzwEcXEBTU5pW6hv48f7FAMyUa4lAyvAQf8OBFz7qOnNKOkDvaNj6i4sCHkxFknMY00qyIiWoYN'
+
+@user_passes_test(lambda u: u.is_superuser)
+def updateaccounts(request):
+    customers = Customer.objects.all()
+    for customer in customers:
+        subscription = stripe.Subscription.retrieve(customer.stripe_subscription_id)
+        if subscription.status != 'active':
+            customer.membership = False
+        else:
+            customer.membership = True
+        customer.cancel_at_period_end = subscription.cancel_at_period_end
+        customer.save()
+        return HttpResponse('completed')
 
 def home(request):
     plans = FitnessPlan.objects
